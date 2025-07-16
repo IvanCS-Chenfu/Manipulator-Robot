@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<robot name="six_dof_manipulator" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Macro for a box-shaped link -->
+  <xacro:macro name="box_link" params="name length width height mass ixx iyy izz dx dy dz">
+    <link name="${name}">
+      <visual>
+        <origin xyz="${dx} ${dy} ${dz}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${length} ${width} ${height}"/>
+        </geometry>
+        <material name="blue">
+          <color rgba="0 0 1 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="${dx} ${dy} ${dz}" rpy="0 0 0"/>
+        <geometry>
+          <box size="${length} ${width} ${height}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="${dx} ${dy} ${dz}" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${ixx}" ixy="0.0" ixz="0.0"
+                 iyy="${iyy}" iyz="0.0"
+                 izz="${izz}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <!-- Base link -->
+  <xacro:box_link name="base_link"
+    length="0.2" width="0.2" height="0.2"
+    mass="2000.0" ixx="100" iyy="100" izz="100"
+    dx="0.0" dy="0.0" dz="0.0"/>
+
+  <!-- Joint 1 -->
+  <xacro:box_link name="link1" length="0.05" width="0.05" height="0.3" mass="0.1" ixx="0.01" iyy="0.01" izz="0.01" dx="0.0" dy="0.0" dz="0.15"/>
+  <!-- Mover el centro del hijo desde el joint -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child  link="link1"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>   <!-- Distancias desde el centro del padre -->
+    <axis  xyz="0 0 1"/>          
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <!-- Joint 2 -->
+  <xacro:box_link name="link2" length="0.3" width="0.05" height="0.05" mass="0.1" ixx="0.01" iyy="0.01" izz="0.01" dx="0.125" dy="0.025" dz="0.0"/>
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child  link="link2"/>
+    <origin xyz="0.0 0.025 0.275" rpy="0 0 0"/>   <!-- Distancias joint anterior¿? -->
+    <axis  xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="10"/>
+  </joint>
+  
+
+  <!-- Joint 3 -->
+  <xacro:box_link name="link3" length="0.3" width="0.05" height="0.05" mass="0.1" ixx="0.01" iyy="0.01" izz="0.00" dx="0.125" dy="-0.025" dz="0.0"/>
+  <joint name="joint3" type="revolute">
+    <parent link="link2"/>
+    <child  link="link3"/>
+    <origin xyz="0.25 0.0 0.0" rpy="0 0 0"/>
+    <axis  xyz="0 -1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="10"/>
+  </joint>
+  
+
+  <!-- Joint 4 -->
+  <xacro:box_link name="link4" length="0.3" width="0.05" height="0.05" mass="0.1" ixx="0.01" iyy="0.01" izz="0.01" dx="0.125" dy="0.0" dz="0.0"/>
+  <joint name="joint4" type="revolute">
+    <parent link="link3"/>
+    <child  link="link4"/>
+    <origin xyz="0.3 -0.025 0.0" rpy="0 0 0"/>
+    <axis  xyz="1 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="10"/>
+  </joint>
+  
+
+  <!-- Joint 5 -->
+  <xacro:box_link name="link5" length="0.05" width="0.05" height="0.05" mass="0.1" ixx="0.01" iyy="0.01" izz="0.01" dx="0.0" dy="0.0" dz="0.0"/>
+  <joint name="joint5" type="revolute">
+    <parent link="link4"/>
+    <child  link="link5"/>
+    <origin xyz="0.32 0.0 0.0" rpy="0 0 0"/>
+    <axis  xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="10"/>
+  </joint>
+  
+
+  <!-- Joint 6 -->
+  <xacro:box_link name="link6" length="0.3" width="0.05" height="0.05" mass="0.1" ixx="0.01" iyy="0.01" izz="0.01" dx="0.15" dy="0.0" dz="0.0"/>
+  <joint name="joint6" type="revolute">
+    <parent link="link5"/>
+    <child  link="link6"/>
+    <origin xyz="0.045 0.0 0.0" rpy="0 0 0"/>
+    <axis  xyz="1 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="1.0"/>
+    <dynamics damping="10"/>
+  </joint>
+  
+
+  <!-- Tell Gazebo to load the ROS2 joint_state_publisher plugin -->
+  <gazebo>
+    <plugin name="joint_state_pub"
+            filename="libgazebo_ros_joint_state_publisher.so">
+      <!-- One <joint_name> entry per joint in your model -->
+      <joint_name>joint1</joint_name>
+      <joint_name>joint2</joint_name>
+      <joint_name>joint3</joint_name>
+      <joint_name>joint4</joint_name>
+      <joint_name>joint5</joint_name>
+      <joint_name>joint6</joint_name>
+      <!-- How fast to publish (Hz) -->
+      <publish_rate>50.0</publish_rate>
+    </plugin>
+  </gazebo>
+
+
+
+  <!-- (Optional) Re-add Gazebo plugin here once visuals verify -->
+</robot>
